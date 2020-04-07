@@ -15,6 +15,42 @@ class Converter:
     def __init__(self):
         return 
 
+def unzip_file(file_url, local_folder):
+        # getting zip file from file_url & extracting to local_folder
+        # must be call before parsing xml: Converter.unzip_file(FILE_URL, LOCAL_FOLDER)
+
+        def rename_xml_files (folder):
+            # analyse file list of directory <folder> & rename current unzipped files to uo.xml and fop.xml
+            # if filename not contains "uo" or "fop" string - file doesn`t rename.
+            # os module required
+            files = os.listdir (folder)
+            for el in files:
+                #rename files
+                print (el)
+                new_filename = ""
+                if (el.upper().find('UO') >= 0): new_filename = 'uo.xml'
+                if (el.upper().find('FOP') >= 0): new_filename = 'fop.xml'
+                if (new_filename != ""): os.rename(folder + el, folder + new_filename)
+        # -------------- end of rename_xml_files()
+
+        print ("Download zip file ...")
+        try:
+            r = requests.get(file_url)
+        except:
+            print ("ERROR of requests.get(" + file_url + ") in module ratu/service.py")
+            return
+
+        print("Unzipping file ...")
+        try:
+            zip_file = zipfile.ZipFile(io.BytesIO(r.content))
+            zip_file.extractall(local_folder)
+        except:
+            print ("ERROR of zipfile.ZipFile()")
+            return
+            
+        rename_xml_files (local_folder)
+    # -------------- end of unzip_file()
+    
     def unzip_file(self):
         # getting zip file  from FILE_URL & extracting to LOCAL_FOLDER
         try:

@@ -30,6 +30,35 @@ class RfopConverter(Converter):
     state_list=[]
     kved_list=[]
     
+
+def save_to_db(self, rec):
+    
+        state_id = None
+
+        for key in self.fop_status_array:
+            if (self.fop_status_array[key] == rec['STAN']):
+                # existing value of state
+                state_id = key
+
+        if (state_id == None):
+                # new value of Rfop.state
+                fopst = Fop_states (state = rec['STAN'][:100])
+                fopst.save()
+                state_id = fopst.id
+                self.fop_status_array.append({'id': state_id, 'state': rec['STAN']}) # add item to array
+
+               
+        # writing entry to Rfop tablefrom
+        ref = Fop_states.objects.get(id=state_id)
+
+        rfop = Rfop(
+            fullname=rec['FIO'],
+            address=rec['ADDRESS'],
+            kved=rec['KVED'],
+            state=ref
+            )
+        rfop.save()
+        
     #writing entry to db 
     def save_to_db(self, record):
         state_rfop=self.save_to_state_rfop_table(record)
@@ -52,7 +81,7 @@ class RfopConverter(Converter):
         state_rfop=Staterfop.objects.get(
             name=state_name
             )
-        return state_rfop
+        return
     
     #writing entry to kved table       
     def save_to_kved_table(self, record):
