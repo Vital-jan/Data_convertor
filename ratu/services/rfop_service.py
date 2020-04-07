@@ -42,7 +42,7 @@ def save_to_db(self, rec):
 
         if (state_id == None):
                 # new value of Rfop.state
-                fopst = Fop_states (state = rec['STAN'][:100])
+                fopst = Fop_states (state = rec['STAN'])
                 fopst.save()
                 state_id = fopst.id
                 self.fop_status_array.append({'id': state_id, 'state': rec['STAN']}) # add item to array
