@@ -16,13 +16,14 @@ class Converter:
         return 
 
 def unzip_file(file_url, local_folder):
-        # getting zip file from file_url & extracting to local_folder
-        # must be call before parsing xml: Converter.unzip_file(FILE_URL, LOCAL_FOLDER)
+        # getting zip file from <file_url> & extract it to <local_folder>
+        # <file_url> must contain url address without filename, look like: "http://hostname.nnn/lll/"
+        # returns 0 if operation is succefully or another value if error occured
+        # must be call before parsing xml
 
         def rename_xml_files (folder):
             # analyse file list of directory <folder> & rename current unzipped files to uo.xml and fop.xml
             # if filename not contains "uo" or "fop" string - file doesn`t rename.
-            # returns 0 if operation is succefully or another value if error occured
             # os module required
             files = os.listdir (folder)
             for file in files:
@@ -78,16 +79,6 @@ def unzip_file(file_url, local_folder):
 
     # -------------- end of unzip_file()
     
-    def unzip_file(self):
-        # getting zip file  from FILE_URL & extracting to LOCAL_FOLDER
-        try:
-            r = requests.get(self.FILE_URL)
-        except TimeoutError as err:   
-            print ("Error open zip file " + self.FILE_URL)
-            return 
-        zip_file = zipfile.ZipFile(io.BytesIO(r.content))
-        zip_file.extractall(self.LOCAL_FOLDER)
-            
     def parse_file(self):
         # encoding & parsing .xml source file
         with codecs.open(self.LOCAL_FOLDER + self.LOCAL_FILE_NAME, encoding="cp1251") as file:
