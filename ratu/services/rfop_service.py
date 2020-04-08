@@ -6,9 +6,7 @@ from ratu.services.main import Converter
 class RfopConverter(Converter):
     
     #paths for remote and local source files
-    FILE_URL = config.FILE_URL
-    LOCAL_FILE_NAME = config.LOCAL_FILE_NAME_RFOP
-    LOCAL_FOLDER = config.LOCAL_FOLDER
+    FILE_URL = " https://data.gov.ua/dataset/b244f35a-e50a-4a80-b704-032c42ba8142/resource/06bbccbd-e19c-40d5-9e18-447b110c0b4c/download/"
 
     #list of models for clearing DB
     tables=[
@@ -30,34 +28,41 @@ class RfopConverter(Converter):
     state_list=[]
     kved_list=[]
     
+    def rename_xml_files ():
+        new_filename = ""
+        if (file.upper().find('UO') >= 0): new_filename = 'uo.xml'
+        if (file.upper().find('FOP') >= 0): new_filename = 'fop.xml'
+        return new_filename
 
-def save_to_db(self, rec):
-    
-        state_id = None
 
-        for key in self.fop_status_array:
-            if (self.fop_status_array[key] == rec['STAN']):
-                # existing value of state
-                state_id = key
+    def save_to_db(self, rec): # save to db by Vital
+        
+            state_id = None
 
-        if (state_id == None):
-                # new value of Rfop.state
-                fopst = Fop_states (state = rec['STAN'])
-                fopst.save()
-                state_id = fopst.id
-                self.fop_status_array.append({'id': state_id, 'state': rec['STAN']}) # add item to array
+            for key in self.fop_status_array:
+                if (self.fop_status_array[key] == rec['STAN']):
+                    # existing value of state
+                    state_id = key
 
-               
-        # writing entry to Rfop tablefrom
-        ref = Fop_states.objects.get(id=state_id)
+            if (state_id == None):
+                    # new value of Rfop.state
+                    fopst = Fop_states (state = rec['STAN'])
+                    fopst.save()
+                    state_id = fopst.id
+                    self.fop_status_array.append({'id': state_id, 'state': rec['STAN']}) # add item to array
 
-        rfop = Rfop(
-            fullname=rec['FIO'],
-            address=rec['ADDRESS'],
-            kved=rec['KVED'],
-            state=ref
-            )
-        rfop.save()
+                
+            # writing entry to Rfop tablefrom
+            ref = Fop_states.objects.get(id=state_id)
+
+            rfop = Rfop(
+                fullname=rec['FIO'],
+                address=rec['ADDRESS'],
+                kved=rec['KVED'],
+                state=ref
+                )
+            rfop.save()
+    # ------------ end of save to db by Vital
         
     #writing entry to db 
     def save_to_db(self, record):

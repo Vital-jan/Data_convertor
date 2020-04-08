@@ -5,9 +5,7 @@ from ratu.services.main import Converter
 class RatuConverter(Converter):
     
     #paths for remote and local source files
-    FILE_URL = config.FILE_URL
-    LOCAL_FILE_NAME = config.LOCAL_FILE_NAME
-    LOCAL_FOLDER = config.LOCAL_FOLDER
+    FILE_URL = "https://data.gov.ua/dataset/75e57837-128b-49e1-a007-5e7dfa7bf6af/resource/e21a1e57-051c-46ea-9c8e-8f30de7d863d/download/"
 
     #list of models for clearing DB
     tables=[
@@ -34,6 +32,11 @@ class RatuConverter(Converter):
     city_list = list()
     citydistrict_list = list()
     
+    def rename_xml_files ():
+        new_filename = ""
+        if (file.upper().find('ATU') >= 0): new_filename = 'atu.xml'
+        return new_filename
+
     #writing entry to db
     def save_to_db(self, record):
         region=self.save_to_region_table(record)
