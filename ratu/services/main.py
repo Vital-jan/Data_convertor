@@ -21,21 +21,10 @@ class Converter:
         return ""
 
     def unzip_file():
+        # os module required
         # getting zip file from self.file_url & extracting to self.local_folder
         # must be call before parsing xml
         # returns 0 if operation is succefully or another value if error occured
-
-        def rename (folder):
-            # analyse file list of directory <folder> & rename current unzipped files to uo.xml and fop.xml
-            # if filename not contains "uo" or "fop" string - file doesn`t rename.
-            # returns 0 if operation is succefully or another value if error occured
-            # os module required
-            files = os.listdir (folder)
-            for file in files:
-                #rename files
-                new_filename = rename_xml_files ()
-                if (new_filename != ""): os.rename(folder + file, folder + new_filename)
-        # -------------- end of rename()
 
         print ("Request to remote url ...")
         response = requests.get(self.file_url, stream=True)
@@ -72,9 +61,18 @@ class Converter:
         except:
             print ("ERROR unzip file")
             return 3
-            
-        rename (self.local_folder) # rename unzipped files to short statical names
-        os.remove (self.zipfile_name) # remove zip file
+
+        # rename unzipped files to short statical names
+        # analyse file list of directory <folder> & rename current unzipped files to uo.xml and fop.xml
+        # if filename not contains "uo" or "fop" string - file doesn`t rename.
+        files = os.listdir (folder)
+
+        for file in files:
+            new_filename = self.rename_xml_files ()
+            if (new_filename != ""): os.rename(self.local_folder + file, self.local_folder + new_filename)
+
+        # remove zip file
+        os.remove (self.zipfile_name) 
         print ("Download and unzip succefully.")
         return 0
 
