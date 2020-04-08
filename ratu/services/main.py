@@ -12,7 +12,7 @@ class Converter:
 
     LOCAL_FOLDER = "unzipped_xml/" # local folder for unzipped xml files
 
-    ZIPFILE_NAME = "downloaded_zip.zip" # destination local filename
+    ZIPFILE_NAME = "" # destination local filename
     
     def __init__(self):
         return 

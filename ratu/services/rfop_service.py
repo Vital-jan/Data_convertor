@@ -7,6 +7,7 @@ class RfopConverter(Converter):
     
     #paths for remote and local source files
     FILE_URL = " https://data.gov.ua/dataset/b244f35a-e50a-4a80-b704-032c42ba8142/resource/06bbccbd-e19c-40d5-9e18-447b110c0b4c/download/"
+    ZIPFILE_NAME = "rfop_ua.zip"
 
     #list of models for clearing DB
     tables=[
