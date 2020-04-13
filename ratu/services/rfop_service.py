@@ -1,4 +1,4 @@
-import config
+# import config
 from ratu.models.rfop_models import Rfop, Staterfop
 from ratu.models.ruo_models import Kved
 from ratu.services.main import Converter

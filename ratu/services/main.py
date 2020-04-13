@@ -12,7 +12,7 @@ class Converter:
 
     LOCAL_FOLDER = "unzipped_xml/" # local folder for unzipped xml files
 
-    ZIPFILE_NAME = "" # destination local filename
+    ZIPFILE_NAME = "downloaded_zip.zip" # destination local filename
     
     def __init__(self):
         return 
@@ -70,6 +70,8 @@ class Converter:
         for file in files:
             new_filename = self.rename_xml_files ()
             if (new_filename != ""): os.rename(self.local_folder + file, self.local_folder + new_filename)
+
+        rename (self.local_folder) 
 
         # remove zip file
         os.remove (self.zipfile_name) 
