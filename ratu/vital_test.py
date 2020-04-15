@@ -1,6 +1,6 @@
 from django.test import TestCase
 import requests, os, zipfile, io
-import config
+# import config
 
 # Create your tests here.
 
