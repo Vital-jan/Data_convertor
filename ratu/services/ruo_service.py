@@ -5,9 +5,8 @@ from ratu.services.main import Converter
 class RuoConverter(Converter):
     
     #paths for remote and local source files
-    FILE_URL = config.FILE_URL_RUO
-    LOCAL_FILE_NAME = config.LOCAL_FILE_NAME_RUO
-    LOCAL_FOLDER = config.LOCAL_FOLDER
+    FILE_URL = ""
+    LOCAL_FILE_NAME = "uo.xml"
 
     #list of models for clearing DB
     tables=[
@@ -39,6 +38,9 @@ class RuoConverter(Converter):
     for kved in Kved.objects.all():
         kved_dict[kved.name]=kved
     
+    def unzip_file(self): # empty function, because unzipping process executes in rfop module
+        return
+
     #writing entry to db 
     def save_to_db(self, record):
         state=self.save_to_state_table(record)

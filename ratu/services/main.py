@@ -7,26 +7,99 @@ import sys
 from xml.etree.ElementTree import iterparse, XMLParser, tostring
 import xmltodict
 import zipfile
+import os
 
 class Converter:
 
-    FILE_URL=None
-    LOCAL_FOLDER=None
-    LOCAL_FILE_NAME=None
+    LOCAL_FILE_NAME = None
+    FILE_URL = None # url of remote zipfile without filename, look like as "http://hostname.ccc/lllll/mmmmm/"
+    LOCAL_FOLDER = "unzipped_xml/" # local folder for unzipped xml files
+    ZIPFILE_NAME = "downloaded_zip.zip" # destination local filename
     
     def __init__(self):
         return 
 
+    # def unzip_file(self):
+    #     # getting zip file  from FILE_URL & extracting to LOCAL_FOLDER
+    #     try:
+    #         r = requests.get(self.FILE_URL)
+    #     except TimeoutError as err:   
+    #         print ("Error open zip file " + self.FILE_URL)
+    #         return 
+    #     zip_file = zipfile.ZipFile(io.BytesIO(r.content))
+    #     zip_file.extractall(self.LOCAL_FOLDER)
+
+    
+    def __init__(self):
+        return 
+
+    def rename_xml_files (self): # abstract method for rename files for each app
+        return ""
+
     def unzip_file(self):
-        # getting zip file  from FILE_URL & extracting to LOCAL_FOLDER
+        # os module required
+        # getting zip file from self.file_url & extracting to self.LOCAL_FOLDER
+        # must be call before parsing xml
+        # returns 0 if operation is succefully or another value if error occured
+
+        if input('Download and unzip file ' + self.LOCAL_FILE_NAME + ' (y/n) ?').upper() != 'Y': return
+
+        print ("Request to remote url ...")
+        response = requests.get(self.FILE_URL, stream=True) 
+        print ("Response: " + str(response.status_code))
+        if (response.status_code != 200):
+            print ("ERROR of requests.get(" + self.file_url + ") in module ratu/main.py")
+            return 1
+        file_size = int (response.headers['Content-Length'])
+
+        with open(self.ZIPFILE_NAME, 'wb') as fd: # download zipfile
+            print ("Download zip file " + fd.name + " (" + str(file_size) + " bytes total) ...")
+            done = 0
+            buffer_size = 102400
+            step = 10
+
+            for chunk in response.iter_content(chunk_size=buffer_size):
+                fd.write(chunk)
+                done += buffer_size
+                percent = round(( done / file_size * 100 ))
+                if (percent >= step):
+                    print ( str ( percent ) + "%")
+                    step += 10
+
+            if (os.stat(self.ZIPFILE_NAME).st_size == file_size):
+                print ("File downloaded succefully.")
+            else: 
+                print ("Download file error")
+                return 2
+
+        print("Unzip file ...") # unzip files
         try:
-            r = requests.get(self.FILE_URL)
-        except TimeoutError as err:   
-            print ("Error open zip file " + self.FILE_URL)
-            return 
-        zip_file = zipfile.ZipFile(io.BytesIO(r.content))
-        zip_file.extractall(self.LOCAL_FOLDER)
-            
+            zip_file = zipfile.ZipFile(self.ZIPFILE_NAME)
+            zip_file.extractall(self.LOCAL_FOLDER)
+        except:
+            print ("ERROR unzip file")
+            return 3
+
+        # rename unzipped files to short statical names
+        # analyse file list of directory <LOCAL_FOLDER> & rename current unzipped files to uo.xml and fop.xml
+        # if filename not contains "uo" or "fop" string - file doesn`t rename.
+        files = os.listdir (self.LOCAL_FOLDER)
+
+        for file in files:
+            new_filename = self.rename_xml_files(file)
+            if (new_filename != ""): os.rename(self.LOCAL_FOLDER + file, self.LOCAL_FOLDER + new_filename)
+
+        # remove zip file
+        try:
+            os.remove (self.ZIPFILE_NAME) 
+        except:
+            print()
+
+        print ("Download and unzip succefully.")
+        return 0
+
+    # -------------- end of unzip_file()
+      
     def parse_file(self):
         # encoding & parsing .xml source file
         with codecs.open(self.LOCAL_FOLDER + self.LOCAL_FILE_NAME, encoding="cp1251") as file:
@@ -41,6 +114,9 @@ class Converter:
     def process(self):
         # parsing sours file in flow
         # get an iterable
+
+        self.unzip_file()
+        
         context = iterparse(self.LOCAL_FOLDER + self.LOCAL_FILE_NAME, events=("start", "end"))
         # turn it into an iterator
         context = iter(context)
