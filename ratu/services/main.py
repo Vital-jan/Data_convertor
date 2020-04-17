@@ -3,32 +3,19 @@ from collections import defaultdict
 from django.apps import apps
 import io
 import requests
+import os
 import sys
+import time
 from xml.etree.ElementTree import iterparse, XMLParser, tostring
 import xmltodict
 import zipfile
-import os
 
 class Converter:
-
+    
     LOCAL_FILE_NAME = None
     FILE_URL = None # url of remote zipfile without filename, look like as "http://hostname.ccc/lllll/mmmmm/"
     LOCAL_FOLDER = "unzipped_xml/" # local folder for unzipped xml files
     ZIPFILE_NAME = "downloaded_zip.zip" # destination local filename
-    
-    def __init__(self):
-        return 
-
-    # def unzip_file(self):
-    #     # getting zip file  from FILE_URL & extracting to LOCAL_FOLDER
-    #     try:
-    #         r = requests.get(self.FILE_URL)
-    #     except TimeoutError as err:   
-    #         print ("Error open zip file " + self.FILE_URL)
-    #         return 
-    #     zip_file = zipfile.ZipFile(io.BytesIO(r.content))
-    #     zip_file.extractall(self.LOCAL_FOLDER)
-
     
     def __init__(self):
         return 
@@ -58,13 +45,18 @@ class Converter:
             buffer_size = 102400
             step = 10
 
+            d1 = time.time()
             for chunk in response.iter_content(chunk_size=buffer_size):
                 fd.write(chunk)
                 done += buffer_size
                 percent = round(( done / file_size * 100 ))
                 if (percent >= step):
+                    if percent > 100: percent = 100
                     print ( str ( percent ) + "%")
                     step += 10
+            d2 = time.time()
+            # print (d2-d1)            
+            # exit(0)
 
             if (os.stat(self.ZIPFILE_NAME).st_size == file_size):
                 print ("File downloaded succefully.")
