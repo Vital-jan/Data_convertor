@@ -1,6 +1,7 @@
 import codecs
 from collections import defaultdict
 from django.apps import apps
+import json
 import io
 import requests
 import os
@@ -12,6 +13,7 @@ import zipfile
 
 class Converter:
     
+    UPDATE_FILE_NAME = 'update.cfg'
     LOCAL_FILE_NAME = None
     FILE_URL = None # url of remote zipfile without filename, look like as "http://hostname.ccc/lllll/mmmmm/"
     LOCAL_FOLDER = "unzipped_xml/" # local folder for unzipped xml files
@@ -23,13 +25,36 @@ class Converter:
     def rename_xml_files (self): # abstract method for rename files for each app
         return ""
 
+    def is_update (self, url, current_size, filename):
+        # returns true, if file size at the <url> changed compared to current_size 
+        
+        try:
+            with open(filename) as file:
+                try:
+                    urls_dict = json.load(file)
+                except:
+                    urls_dict = {}
+        except: 
+            urls_dict = {}
+
+        if len (urls_dict) > 0:
+            if url in urls_dict:
+                if int(urls_dict[url]) == current_size:
+                    return False
+
+        urls_dict[url] = current_size
+        file = open (filename, "w")
+        file.write (json.dumps(urls_dict))
+        file.close
+        return True
+
     def unzip_file(self):
         # os module required
         # getting zip file from self.file_url & extracting to self.LOCAL_FOLDER
         # must be call before parsing xml
         # returns 0 if operation is succefully or another value if error occured
 
-        if input('Download and unzip file ' + self.LOCAL_FILE_NAME + ' (y/n) ?').upper() != 'Y': return
+        # if input('Download and unzip file ' + self.LOCAL_FILE_NAME + ' (y/n) ?').upper() != 'Y': return
 
         print ("Request to remote url ...")
         response = requests.get(self.FILE_URL, stream=True) 
@@ -39,13 +64,16 @@ class Converter:
             return 1
         file_size = int (response.headers['Content-Length'])
 
+        if not ( self.is_update (self.FILE_URL, file_size, self.UPDATE_FILE_NAME) ):
+            print ("Source files are not updated. Nothing to download.")
+            return 0
+
         with open(self.ZIPFILE_NAME, 'wb') as fd: # download zipfile
             print ("Download zip file " + fd.name + " (" + str(file_size) + " bytes total) ...")
             done = 0
             buffer_size = 102400
             step = 10
 
-            d1 = time.time()
             for chunk in response.iter_content(chunk_size=buffer_size):
                 fd.write(chunk)
                 done += buffer_size
@@ -54,9 +82,6 @@ class Converter:
                     if percent > 100: percent = 100
                     print ( str ( percent ) + "%")
                     step += 10
-            d2 = time.time()
-            # print (d2-d1)            
-            # exit(0)
 
             if (os.stat(self.ZIPFILE_NAME).st_size == file_size):
                 print ("File downloaded succefully.")
