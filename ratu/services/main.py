@@ -3,8 +3,8 @@ from collections import defaultdict
 from django.apps import apps
 import json
 import io
-import requests
 import os
+import requests
 import sys
 import time
 from xml.etree.ElementTree import iterparse, XMLParser, tostring
