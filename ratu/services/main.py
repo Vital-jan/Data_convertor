@@ -13,63 +13,69 @@ import zipfile
 
 class Converter:
     
-    UPDATE_FILE_NAME = 'update.cfg'
+    UPDATE_FILE_NAME = "update.cfg"
     LOCAL_FILE_NAME = None
     FILE_URL = None # url of remote zipfile without filename, look like as "http://hostname.ccc/lllll/mmmmm/"
     LOCAL_FOLDER = "unzipped_xml/" # local folder for unzipped xml files
-    ZIPFILE_NAME = "downloaded_zip.zip" # destination local filename
+    DOWNLOAD_FOLDER = "download/" # folder to downloaded files
+    DOWNLOADED_FILE_NAME = None # destination local filename
+    URLS_DICT = {}
     
     def __init__(self):
         return 
 
-    def rename_xml_files (self): # abstract method for rename files for each app
+    def rename_files (self):
+        # abstract method for rename unzipped files for each app
         return ""
 
-    def is_update (self, url, current_size, filename):
+    def is_update (self, current_size):
         # returns true, if file size at the <url> changed compared to current_size 
         
         try:
-            with open(filename) as file:
+            with open(self.UPDATE_FILE_NAME) as file:
                 try:
-                    urls_dict = json.load(file)
+                    self.URLS_DICT = json.load(file)
                 except:
-                    urls_dict = {}
+                    pass
         except: 
-            urls_dict = {}
+            pass
 
-        if len (urls_dict) > 0:
-            if url in urls_dict:
-                if int(urls_dict[url]) == current_size:
+        if len (self.URLS_DICT) > 0:
+            if self.FILE_URL in self.URLS_DICT:
+                if int(self.URLS_DICT[self.FILE_URL]) == current_size:
                     return False
 
-        urls_dict[url] = current_size
-        file = open (filename, "w")
-        file.write (json.dumps(urls_dict))
-        file.close
         return True
 
-    def unzip_file(self):
-        # os module required
-        # getting zip file from self.file_url & extracting to self.LOCAL_FOLDER
-        # must be call before parsing xml
+    def change_update (self, current_size):
+        # update json, contains url & remote files size 
+
+        self.URLS_DICT[self.FILE_URL] = current_size
+        file = open (self.UPDATE_FILE_NAME, "w")
+        file.write (json.dumps(self.URLS_DICT))
+        file.close
+
+    def download_file(self):
+        # getting remote file from self.file_url
         # returns 0 if operation is succefully or another value if error occured
 
-        # if input('Download and unzip file ' + self.LOCAL_FILE_NAME + ' (y/n) ?').upper() != 'Y': return
-
-        print ("Request to remote url ...")
+        #request to remote url
+        print ("Request to remote url > " + self.FILE_URL)
         response = requests.get(self.FILE_URL, stream=True) 
         print ("Response: " + str(response.status_code))
         if (response.status_code != 200):
             print ("ERROR of requests.get(" + self.file_url + ") in module ratu/main.py")
             return 1
+
+        # check for remote file updates 
         file_size = int (response.headers['Content-Length'])
-
-        if not ( self.is_update (self.FILE_URL, file_size, self.UPDATE_FILE_NAME) ):
+        if not ( self.is_update (file_size) ):
             print ("Source files are not updated. Nothing to download.")
-            return 0
+            return 1
 
-        with open(self.ZIPFILE_NAME, 'wb') as fd: # download zipfile
-            print ("Download zip file " + fd.name + " (" + str(file_size) + " bytes total) ...")
+        # download file
+        with open(self.DOWNLOAD_FOLDER + self.DOWNLOADED_FILE_NAME, 'wb') as fd:
+            print ("Download zip file: " + fd.name + " (" + str(file_size) + " bytes total) ...")
             done = 0
             buffer_size = 102400
             step = 10
@@ -83,40 +89,42 @@ class Converter:
                     print ( str ( percent ) + "%")
                     step += 10
 
-            if (os.stat(self.ZIPFILE_NAME).st_size == file_size):
+            if (os.stat(self.DOWNLOAD_FOLDER + self.DOWNLOADED_FILE_NAME).st_size == file_size):
                 print ("File downloaded succefully.")
+                self.change_update (file_size)
+                return 0
             else: 
                 print ("Download file error")
                 return 2
 
-        print("Unzip file ...") # unzip files
+    def unzip_file (self):
+        # unzip downloaded file
+        print("Unzipping file ...") 
         try:
-            zip_file = zipfile.ZipFile(self.ZIPFILE_NAME)
+            zip_file = zipfile.ZipFile(self.DOWNLOAD_FOLDER + self.DOWNLOADED_FILE_NAME)
             zip_file.extractall(self.LOCAL_FOLDER)
         except:
             print ("ERROR unzip file")
-            return 3
-
-        # rename unzipped files to short statical names
-        # analyse file list of directory <LOCAL_FOLDER> & rename current unzipped files to uo.xml and fop.xml
-        # if filename not contains "uo" or "fop" string - file doesn`t rename.
-        files = os.listdir (self.LOCAL_FOLDER)
-
-        for file in files:
-            new_filename = self.rename_xml_files(file)
-            if (new_filename != ""): os.rename(self.LOCAL_FOLDER + file, self.LOCAL_FOLDER + new_filename)
+            return 1
 
         # remove zip file
         try:
-            os.remove (self.ZIPFILE_NAME) 
+            os.remove (self.DOWNLOAD_FOLDER + self.DOWNLOADED_FILE_NAME) 
         except:
-            print()
-
-        print ("Download and unzip succefully.")
+            print('Deleting zipfile error!')
+            
+        print ("Unzip succefully.")
         return 0
 
-    # -------------- end of unzip_file()
-      
+    def rename_files (self):
+        # renames unzipped files to short statical names
+        files = os.listdir (self.LOCAL_FOLDER)
+
+        for file in files:
+            new_filename = self.rename(file)
+            if (new_filename != ""): os.rename(self.LOCAL_FOLDER + file, self.LOCAL_FOLDER + new_filename)
+
+
     def parse_file(self):
         # encoding & parsing .xml source file
         with codecs.open(self.LOCAL_FOLDER + self.LOCAL_FILE_NAME, encoding="cp1251") as file:
@@ -132,8 +140,6 @@ class Converter:
         # parsing sours file in flow
         # get an iterable
 
-        self.unzip_file()
-        
         context = iterparse(self.LOCAL_FOLDER + self.LOCAL_FILE_NAME, events=("start", "end"))
         # turn it into an iterator
         context = iter(context)

@@ -6,6 +6,7 @@ class RatuConverter(Converter):
     
     #paths for remote and local source files
     FILE_URL = "https://data.gov.ua/dataset/75e57837-128b-49e1-a007-5e7dfa7bf6af/resource/e21a1e57-051c-46ea-9c8e-8f30de7d863d/download/"
+    DOWNLOADED_FILE_NAME = "ratu.zip"
     LOCAL_FILE_NAME = "ratu.xml"
     CHUNK_SIZE = 200
 
@@ -36,13 +37,13 @@ class RatuConverter(Converter):
 
     bulk_manager = BulkCreateManager(CHUNK_SIZE)
     
-    def rename_xml_files (self, file):
+    def rename (self, file):
         new_filename = ""
         if (file.upper().find('ATU') >= 0): new_filename = 'ratu.xml'
         return new_filename
 
-    #writing entry to db
     def save_to_db(self, record):
+        #writing entry to db
         region=self.save_to_region_table(record)
         district=self.save_to_district_table(record, region)
         city=self.save_to_city_table(record,region, district)
@@ -50,8 +51,8 @@ class RatuConverter(Converter):
         self.save_to_street_table(record,region, district, city, citydistrict)
         print('saved')
     
-    #writing entry to region table           
     def save_to_region_table(self, record):
+        #writing entry to region table           
         if not record['OBL_NAME'] in self.region_dict:
             region = Region(
                 name=record['OBL_NAME']
@@ -62,8 +63,8 @@ class RatuConverter(Converter):
         region=self.region_dict[record['OBL_NAME']]
         return region
     
-    #writing entry to district table    
     def save_to_district_table(self, record, region):
+        #writing entry to district table    
         if record['REGION_NAME']:
             district_name=record['REGION_NAME']
         else:
@@ -81,8 +82,8 @@ class RatuConverter(Converter):
             )
         return district
 
-    #writing entry to city table    
     def save_to_city_table(self, record, region, district):
+        #writing entry to city table    
         if record['CITY_NAME']:
             city_name=record['CITY_NAME']
         else:
@@ -102,8 +103,8 @@ class RatuConverter(Converter):
             )
         return city
     
-    #writing entry to citydistrict table
     def save_to_citydistrict_table(self, record, region, district, city):
+        #writing entry to citydistrict table
         if record['CITY_REGION_NAME']:
             citydistrict_name=record['CITY_REGION_NAME']
         else:
@@ -125,8 +126,8 @@ class RatuConverter(Converter):
             )
         return citydistrict
     
-    #writing entry to street table
     def save_to_street_table(self, record, region, district, city, citydistrict):    
+        #writing entry to street table
         if record['STREET_NAME']:
             street = Street(
                 region=region, 
