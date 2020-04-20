@@ -1,7 +1,6 @@
 from django.urls import path
 from .views import RfopView
 from .views import RuoView
-
 from . import views
 
 urlpatterns = [
