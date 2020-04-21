@@ -31,6 +31,11 @@ ALLOWED_HOSTS = []
 
 # Application definition
 
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS':    
+         'data_converter.pagination.CustomPagination'
+}
+
 INSTALLED_APPS = [
     'ratu.apps.RatuConfig',
     'rest_framework',
