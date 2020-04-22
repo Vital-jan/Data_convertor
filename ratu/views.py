@@ -26,11 +26,6 @@ class Viewers (GenericAPIView):
         else:
             serializer = self.get_serializer(queryset, many=True)
             data = serializer.data
-        payload = {
-            'return_code': '0000',
-            'return_message': 'Success',
-            'data': data
-        }
         return Response(data)
 
 class RfopView(Viewers):
