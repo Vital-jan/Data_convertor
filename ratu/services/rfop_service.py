@@ -6,9 +6,9 @@ from ratu.services.main import Converter, BulkCreateManager
 class RfopConverter(Converter):
     
     #paths for remote and local source files
-    FILE_URL = config.FILE_URL_RUO
-    LOCAL_FILE_NAME = config.LOCAL_FILE_NAME_RFOP
-    LOCAL_FOLDER = config.LOCAL_FOLDER
+    FILE_URL = "https://data.gov.ua/dataset/b244f35a-e50a-4a80-b704-032c42ba8142/resource/06bbccbd-e19c-40d5-9e18-447b110c0b4c/download/"
+    DOWNLOADED_FILE_NAME = "rfop_ruo.zip"
+    LOCAL_FILE_NAME = "fop.xml"
     CHUNK_SIZE = 200
 
     #list of models for clearing DB
@@ -36,15 +36,21 @@ class RfopConverter(Converter):
     for kved in Kved.objects.all():
         kved_dict[kved.name]=kved
 
-    #writing entry to db 
+    def rename (self, file):
+        new_filename = ""
+        if (file.upper().find('UO') >= 0): new_filename = 'uo.xml'
+        if (file.upper().find('FOP') >= 0): new_filename = 'fop.xml'
+        return new_filename
+
     def save_to_db(self, record):
+        #writing entry to db 
         state=self.save_to_state_table(record)
         kved=self.save_to_kved_table(record)
         self.save_to_rfop_table(record, state, kved)
         print('saved')
         
-    #writing entry to state table       
     def save_to_state_table(self, record):
+        #writing entry to state table       
         if record['STAN']:
             state_name=record['STAN']
         else:
@@ -59,8 +65,8 @@ class RfopConverter(Converter):
         state=self.state_dict[state_name]
         return state
     
-    #writing entry to kved table       
     def save_to_kved_table(self, record):
+        #writing entry to kved table       
         if record['KVED']:
             kved_name=record['KVED']
         else:
@@ -75,8 +81,8 @@ class RfopConverter(Converter):
         kved=self.kved_dict[kved_name]
         return kved
     
-    #writing entry to rfop table
     def save_to_rfop_table(self, record, state, kved):
+        #writing entry to rfop table
         rfop = Rfop(
             state=state,
             kved=kved,
