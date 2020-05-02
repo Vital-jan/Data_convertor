@@ -4,8 +4,9 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
 class Views (GenericAPIView):
+
     def get(self, request):
-        queryset = self.filter_queryset(self.get_queryset())
+        queryset = self.get_queryset()
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -15,3 +16,4 @@ class Views (GenericAPIView):
             serializer = self.get_serializer(queryset, many=True)
             data = serializer.data
         return Response(data)
+        
