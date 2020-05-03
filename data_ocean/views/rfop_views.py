@@ -25,7 +25,6 @@ class RfopView(Views):
         #address_exclude= (not contains)
 
         resp = self.queryset.all()
-        print(self.queryset.get(id=1))
 
         if self.get_parameters (''):
 
