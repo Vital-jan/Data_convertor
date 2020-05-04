@@ -6,7 +6,7 @@ if RatuConverter().download_file() == 0:
     if RatuConverter().unzip_file() == 0:
         RatuConverter().rename_files()
 
-# RatuConverter().process()
+RatuConverter().process()
 
 if RfopConverter().download_file() == 0:
     if RfopConverter().unzip_file() == 0:
